@@ -23,11 +23,13 @@ Use `mcp__google-drive__calendar_events_list` to fetch today's events.
 
 Use `mcp__plugin_linear_linear__list_issues` to fetch issues assigned to me.
 
-- Filter: assigned to me AND status in `In Progress`, `Todo`, or `Backlog`
-- From the results, keep only issues where:
-  - Status is `In Progress` (regardless of due date), OR
-  - Due date is today or overdue, OR
-  - Status is `Todo` (include as lower priority)
+- Make **two** calls to `mcp__plugin_linear_linear__list_issues`:
+  1. `assignee: "me"`, `state: "started"` — captures In Progress and In Review
+  2. `assignee: "me"`, `state: "unstarted"` — captures Todo, Ready for Work, Backlog
+- From the combined results, keep issues where:
+  - Status is `In Progress` or `In Review` (regardless of due date), OR
+  - Status is `Ready for Work` or `Todo` with due date within 7 days or priority ≤ 2 (High/Urgent), OR
+  - Due date is today or overdue (any status)
 - Extract: **identifier** (e.g. `MLS-751`), **title**, **priority** (1=Urgent, 2=High, 3=Medium, 4=Low), **due date**, **status**
 
 ### Source 3 — GitHub
