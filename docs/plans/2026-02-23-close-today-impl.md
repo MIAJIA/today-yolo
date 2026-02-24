@@ -173,13 +173,13 @@ Source 3 — GitHub: same as `/today` (`gh pr list` + `gh api notifications`)
 Source 4 — Slack: same as `/today` (`mcp__slack__conversations_history`, 48h window)
 Source 5 — Gmail: same as `/today` (check if MCP available, skip if not)
 Source 6 — Notion: same as `/today` (`mcp__notion__notion-search`)
-Source 7 — Timing: Fetch today's time entries via Bash:
+Source 7 — Timing: Use the `timingapp-timeline-loader` skill to fetch today's time data from local SQLite:
 ```bash
-curl -s -H "Authorization: Bearer $TIMING_API_KEY" \
-  "https://web.timingapp.com/api/v1/time-entries?start_date_min={{YYYY-MM-DD}}&start_date_max={{YYYY-MM-DD}}&include_project_data=1"
+python3 ~/.claude/skills/timingapp-timeline-loader/generate_timeline.py --date {{YYYY-MM-DD}} --summary --output -
 ```
-- If `TIMING_API_KEY` env var is not set or curl fails, print `⚠️ Timing API 未配置，跳过时间分析。` and continue
-- Group time entries by project title, sum durations, calculate percentages
+- If the script fails (Timing not installed, DB not found), print `⚠️ Timing 数据不可用，跳过时间分析。` and continue
+- The JSON output includes `total_hours`, `by_project` (hours per project), `work_sessions` (time ranges with project/app breakdown)
+- Use `by_project` for the time analysis section, `work_sessions` for detailed session breakdown
 
 **Step 3: Match items and determine completion status**
 
@@ -312,32 +312,17 @@ git commit -m "fix: close-today adjustments from test run"
 
 ---
 
-### Task 4: Configure Timing API key (optional)
+### Task 4: Verify Timing skill works
 
-**Step 1: Get API key**
-
-User needs to:
-1. Go to `https://web.timingapp.com/` → Settings → API Keys
-2. Generate a new API key
-3. Set it as environment variable
-
-**Step 2: Configure environment variable**
-
-Add to shell profile (`~/.zshrc`):
-```bash
-export TIMING_API_KEY="your-api-key-here"
-```
-
-Then: `source ~/.zshrc`
-
-**Step 3: Test Timing integration**
+**Step 1: Test the timing skill**
 
 ```bash
-curl -s -H "Authorization: Bearer $TIMING_API_KEY" \
-  "https://web.timingapp.com/api/v1/time-entries?start_date_min=2026-02-23&start_date_max=2026-02-23" | head -c 200
+python3 ~/.claude/skills/timingapp-timeline-loader/generate_timeline.py --date 2026-02-23 --summary --output -
 ```
 
-Expected: JSON response with time entries (or empty array if no entries today).
+Expected: JSON with `total_hours`, `by_project`, `work_sessions`.
+
+No API key needed — reads directly from Timing's local SQLite database.
 
 ---
 

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "timingapp-timeline.schema.json",
+  "title": "Timing App Timeline Schema",
+  "description": "Schema for Timing App timeline loader output. Supports two modes: raw timeline (array of activities) and summary mode (aggregated work sessions).",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/RawTimeline"
+    },
+    {
+      "$ref": "#/$defs/SummaryOutput"
+    }
+  ],
+  "$defs": {
+    "RawTimelineEvent": {
+      "type": "object",
+      "description": "Individual activity from Timing App (raw mode, no --summary flag)",
+      "properties": {
+        "start_ts": {
+          "type": "number",
+          "description": "Unix timestamp for activity start"
+        },
+        "end_ts": {
+          "type": "number",
+          "description": "Unix timestamp for activity end"
+        },
+        "category": {
+          "type": "string",
+          "description": "Application name (e.g., 'Cursor', 'Arc', 'Slack')"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Format: '<app>: <window title>' or just '<app>'"
+        },
+        "details": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Includes: App, Title, Path (if available)"
+        }
+      },
+      "required": ["start_ts", "category", "summary"]
+    },
+    "RawTimeline": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/RawTimelineEvent" },
+      "description": "Array of raw activity events (default mode)"
+    },
+    "WorkSession": {
+      "type": "object",
+      "description": "Aggregated work session (summary mode, grouped by time proximity)",
+      "properties": {
+        "time": {
+          "type": "string",
+          "pattern": "^[0-9]{2}:[0-9]{2}~[0-9]{2}:[0-9]{2}$",
+          "description": "Time range in format 'HH:MM~HH:MM'"
+        },
+        "primary_project": {
+          "type": "string",
+          "description": "Project with most time spent in this session"
+        },
+        "duration_mins": {
+          "type": "number",
+          "description": "Total session duration in minutes"
+        },
+        "projects": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Map of project name to minutes spent"
+        },
+        "apps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of applications used during session"
+        },
+        "files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of files/documents worked on (up to 10)"
+        },
+        "titles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Window titles seen during session (up to 10)"
+        }
+      },
+      "required": ["time", "primary_project", "duration_mins", "projects", "apps"]
+    },
+    "SummaryOutput": {
+      "type": "object",
+      "description": "Aggregated summary output (--summary flag)",
+      "properties": {
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Date in YYYY-MM-DD format"
+        },
+        "total_hours": {
+          "type": "number",
+          "description": "Total tracked hours for the day"
+        },
+        "by_project": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Map of project name to hours spent"
+        },
+        "work_sessions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkSession" },
+          "description": "List of work sessions grouped by time proximity"
+        }
+      },
+      "required": ["date", "total_hours", "by_project", "work_sessions"]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+name: timingapp-timeline-loader
+description: Load Timing App timeline data via Local SQLite to generate structured highlights
+version: 2.0.1
+base_directory: ~/today-yolo/skills/timingapp-timeline-loader
+author: Victor Zhou
+tags: [timing, timeline, journaling, productivity, local-db]

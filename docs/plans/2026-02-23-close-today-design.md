@@ -27,7 +27,7 @@
 | 4 | Slack | `mcp__slack__conversations_history` | 最近消息 | 判断是否已回复 @mention |
 | 5 | Gmail | Gmail MCP（待配置） | 未读邮件 | 判断邮件是否已处理 |
 | 6 | Notion | `mcp__notion__notion-search` | task 状态 | 判断 Notion task 是否完成 |
-| 7 | Timing | Web API (`web.timingapp.com`) | 今天的时间记录 | 实际时间分析 |
+| 7 | Timing | `timingapp-timeline-loader` skill (本地 SQLite) | 今天的时间记录 | 实际时间分析 |
 
 ## 核心逻辑: 逐项匹配 & 完成判断
 
@@ -153,13 +153,17 @@
 | ⚡ 效率教练 | 时间分配、番茄完成率、工作节奏、明日优化建议 |
 | 🌱 Positive Intelligence | 心理状态、识别心魔模式（Judge, Achiever, Controller 等）、积极重构、PQ rep |
 
-## Timing API 配置
+## Timing 数据源
 
-- Endpoint: `web.timingapp.com`
-- Auth: Bearer token (API key)
-- Query: `GET /time-entries?start_date_min=YYYY-MM-DD&start_date_max=YYYY-MM-DD`
-- 按 project 分组计算时长
-- 如果 API 不可用，跳过时间分析（graceful degradation）
+使用 `timingapp-timeline-loader` skill（本地 SQLite 直接读取，无需 API key）：
+
+```bash
+python3 ~/.claude/skills/timingapp-timeline-loader/generate_timeline.py --date YYYY-MM-DD --summary --output -
+```
+
+- 读取 `~/Library/Application Support/info.eurocomp.Timing2/SQLite.db`
+- 输出: JSON with `total_hours`, `by_project`, `work_sessions`
+- 如果 Timing 未安装或数据库不存在，跳过时间分析（graceful degradation）
 
 ## Skill 结构
 
